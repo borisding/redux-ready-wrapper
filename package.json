@@ -1,0 +1,40 @@
+{
+  "name": "redux-ready-wrapper",
+  "version": "1.0.0",
+  "description": "Ready wrapper middleware for Redux library",
+  "main": "dist/index.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "minify": "uglifyjs dist/index.js -c -m -o dist/index.min.js",
+    "build": "npm run clean && cross-env babel src --out-dir dist && npm run minify",
+    "prepublish": "npm run build",
+    "lint": "eslint src __tests__",
+    "test": "jest"
+  },
+  "jest": {
+    "roots": [
+      "__tests__"
+    ]
+  },
+  "keywords": [
+    "redux",
+    "middleware",
+    "redux-middleware",
+    "redux-ready-wrapper"
+  ],
+  "author": "Boris Ding Poh Hing",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-jest": "^19.0.0",
+    "babel-preset-env": "^1.4.0",
+    "cross-env": "^4.0.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.1.3",
+    "eslint-plugin-import": "^2.2.0",
+    "jest": "^19.0.2",
+    "rimraf": "^2.6.1",
+    "uglify-js": "^2.8.22"
+  }
+}
