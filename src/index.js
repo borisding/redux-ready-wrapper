@@ -1,8 +1,13 @@
-// `ready` function to be returned instead of action that you want to dispatch
-// Both `dispatch` and `getState` are then passed to resolved `callback` function
-
-// Note that ready action will be dispatched before invoking callback
-// You may control or do something based on the provided options and ready action type
+/**
+ * Ready wrapper by passing a `callback` function.
+ * `options` object is optional, can be passed at action basis.
+ * ready action will be dispatched with provided `options` before invoking the `callback` function.
+ * This allows us to add reducer for managing state at ready action level with provided `options`.
+ *
+ * @param  {Function} callback
+ * @param  {Object}   [options={}]
+ * @return {Object}
+ */
 export function ready(callback, options = {}) {
   const type = 'READY_ACTION';
   const readyActionCreator = () => ({ type, options });
@@ -20,9 +25,12 @@ export function ready(callback, options = {}) {
   };
 }
 
-// exported ready action middleware
-// passing store object to action when function is returned
-// otherwise, proceed to the next action
+/**
+ * ready action wrapper middleware.
+ * Need to be imported as part of application's middlewares for usage.
+ *
+ * @return {Function|Object}
+ */
 export default () => (
   store => next => (action) => {
     if (typeof action === 'function') {
