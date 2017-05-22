@@ -1,12 +1,13 @@
 {
   "name": "redux-ready-wrapper",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Ready wrapper middleware for Redux library",
   "main": "dist/index.js",
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && mkdir dist",
     "minify": "uglifyjs dist/index.js -c -m -o dist/index.min.js",
-    "build": "npm run clean && npm run test && cross-env babel src --out-dir dist && npm run minify",
+    "build:cmj": "cross-env browserify src/index.js -o dist/index.js -t [ babelify --presets [env] ]",
+    "build": "npm run clean && npm run test && npm run build:cmj && npm run minify",
     "prepublish": "npm run build",
     "lint": "eslint src __tests__",
     "test": "jest"
@@ -29,6 +30,8 @@
     "babel-eslint": "^7.2.3",
     "babel-jest": "^19.0.0",
     "babel-preset-env": "^1.4.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.3.0",
     "cross-env": "^4.0.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb-base": "^11.1.3",
