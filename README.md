@@ -1,7 +1,7 @@
 ## What is redux-ready-wrapper?
 - A middleware of [Redux](http://redux.js.org/docs/introduction/) library that handles asynchronous action flow.
 - If you already know how to use [`redux-thunk`](https://github.com/gaearon/redux-thunk), probably you already know how to use `redux-ready-wrapper`, as alternative.
-- The differences are, `redux-ready-wrapper` will dispatch an extra action with `READY_ACTION` type and `options` object before dispatching next targeted action(s) and also, always return a `Promise` object for chaining.
+- The differences are, `redux-ready-wrapper` will dispatch an extra action with `READY_ACTION` type and `options` object *before* dispatching next targeted action(s). Also, it returns a `Promise` object from the `ready` function.
 - By having ready action and options provided, this allows us to control application's state based on the "ready" mode, before subsequent action is dispatched.
 
 ## Installation & Usage
@@ -11,7 +11,7 @@
 npm install redux-ready-wrapper --save
 ```
 
-- Example:
+- Example 1:
 
 ```js
 import { createStore, applyMiddleware } from 'redux';
@@ -19,18 +19,18 @@ import readyWrapper, { ready } from 'redux-ready-wrapper'; // import this ready 
 import { createLogger } from 'redux-logger';
 import rootReducer from './reducer';
 
-const middlewares = [readyWrapper()]; // call this!
+const middlewares = [readyWrapper()]; // add middleware by calling it!
 
 if (process.env.NODE_ENV !== 'production') {
-  middlewares.push(createLogger())
+  middlewares.push(createLogger());
 }
 
-// created store
+// create the store
 const store = createStore(rootReducer, applyMiddleware(...middlewares));
 
 const type = 'SOMETHING';
 
-// something action creator
+// action creator for something
 const actionCreator = () => ({
   type,
   payload: { /* your stuff here...*/ }
@@ -42,20 +42,22 @@ export function doSomething() {
 }
 
 // do something else with dispatched action
-// or throw error if it is not received
-export function doSomethingElse(dispatchedAction) {
+// or throw error if it is invalid.
+// ps: you may extract or extend the returned action as a new action to be dispatched for the next
+export function doSomethingElse(dispatchedAction = {}) {
   if (dispatchedAction.type !== type) {
-    throw new Error('No dispatched action received. Unable to proceed!');
+    throw new Error('Invalid dispatched action received!');
   }
 
-  console.log(`Yay! received dispatched action ${JSON.stringify(dispatchedAction)}`);
+  console.log(`Yay! action received:  ${JSON.stringify(dispatchedAction)}`);
 }
 
-// then we can dispatch doSomething and
+
+// up to here, we can dispatch `doSomething` which returns `ready` function and
 // proceed to the next function via promise, like so
 store.dispatch(doSomething())
-.then(action => doSomethingElse(action)) // show console log when invoked
-.catch(error => alert(`Oops! ${error}`)); // alert thrown error message when it's failed
+.then(action => doSomethingElse(action)) // show console log's message when invoked
+.catch(error => alert(`Oops! ${error}`)); // alert thrown error message if failed
 ```
 - Pass `options` to ready wrapper:
 
@@ -71,17 +73,83 @@ export function doSomething() {
 }
 
 // add a reducer say, `something` pure function
-function something(state = {}, action) {
+export function something(state = {}, action) {
   if (action.type === 'READY_ACTION') {
     // manage your `action.options`
 
   } else if (action.type === 'SOMETHING') {
     // manage state for `SOMETHING`
   }
-  
+
   return state;
 }
 ```
+- Example 2 (React-Redux):
+
+```js
+// filename: userActions.js
+
+import { ready } from 'redux-ready-wrapper';
+import { LOGIN_SUCCESS, LOGIN_FAILURE } from './constants';
+
+// dispatch user login message based on the payload
+export function showLoginMessage(payload) {
+  return {
+    type: !payload.user ? LOGIN_FAILURE : LOGIN_SUCCESS,
+    payload
+  };
+}
+
+// user login action,
+// assume response consisted of user data and/or messages
+export function userLogin(formData) {
+  return ready(dispatch => (
+    fetch('/login', {
+      method: 'POST',
+      body: formData
+    })
+  ));
+}
+```
+
+```js
+// filename: User.js
+// User react component that has `handleSubmit` method
+// and with bound user actions in `mapDispatchToProps`
+
+import React, { Component } from 'react';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as userActions from './userActions';
+
+class User extends Component {
+  ...
+
+  // say, invoked through `onSubmit` via user login form
+  handleSubmit(evt) {
+    evt.preventDefault();
+    const { userLogin, showLoginMessage } = this.props.actions;
+    const formData = ...;
+
+    userLogin(formData)
+    .then(response => showLoginMessage(response))
+    .catch(error => showLoginMessage(error));
+  }
+
+  ...
+}
+
+const mapStateToProps = ...;
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators(userActions, dispatch)
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(User);
+```
+
 ## API
 - `ready` function from `redux-ready-wrapper` accepts two arguments:
 
