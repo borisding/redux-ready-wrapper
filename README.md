@@ -38,7 +38,6 @@ export default createStore(
 - Example 1:
 
 ```js
-import store from './index';
 import { ready } from 'redux-ready-wrapper'; // import `ready`
 
 const type = 'SOMETHING';
@@ -66,7 +65,8 @@ export function doSomethingElse(action = {}) {
 }
 
 
-// now, we can dispatch `doSomething` and
+// assumed `store` object is available,
+// we can dispatch `doSomething` and
 // proceed to the next via promise
 store.dispatch(doSomething())
 .then(action => doSomethingElse(action)) // show console log's message when invoked
@@ -88,10 +88,10 @@ export function doSomething() {
 // add a reducer say, `something` pure function
 export function something(state = {}, action) {
   if (action.type === 'READY_ACTION') {
-    // manage your `action.options`
+    // manage state change and `action.options`
 
   } else if (action.type === 'SOMETHING') {
-    // manage state for `SOMETHING`
+    // manage state change for `SOMETHING`
   }
 
   return state;
@@ -123,7 +123,7 @@ export function userLogin(formData) {
       if (!user.id) throw new Error('Login failure. Please try again!');
       dispatch(showLoginNotification('You have logged in!'));
     })
-    .catch(error => showLoginNotification(error))
+    .catch(error => dispatch(showLoginNotification(error)))
   ));
 }
 
@@ -154,8 +154,7 @@ class User extends Component {
     const formData = ...;
 
     userLogin(formData)
-    .then(() => doNextAfterLoggedIn())
-    .catch(error => /* error handling */);
+    .then(() => doNextAfterLoggedIn());
   }
 
   ...
@@ -175,7 +174,7 @@ export default connect(
 ## API
 - `ready` function from `redux-ready-wrapper` that accepts two arguments:
 
-- i. `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` functions from redux's `store` object.
+- i. `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
 
 - ii. `options` (optional) - A custom object literal to be passed as second argument and will come together with dispatched ready action, in this form:
 
