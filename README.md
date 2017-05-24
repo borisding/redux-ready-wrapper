@@ -90,25 +90,33 @@ export function something(state = {}, action) {
 // filename: userActions.js
 
 import { ready } from 'redux-ready-wrapper';
-import { LOGIN_SUCCESS, LOGIN_FAILURE } from './constants';
+import { LOGIN_NOTIFICATION } from './constants';
 
-// dispatch user login message based on the payload
-export function showLoginMessage(payload) {
+// dispatch user login notification
+// message could be handled in your middleware
+export function showLoginNotification(message) {
   return {
-    type: !payload.user ? LOGIN_FAILURE : LOGIN_SUCCESS,
-    payload
+    type: LOGIN_NOTIFICATION,
+    message
   };
 }
 
-// user login action,
-// assume response consisted of user data and/or messages
+// user login action
 export function userLogin(formData) {
   return ready(dispatch => (
-    fetch('/login', {
-      method: 'POST',
-      body: formData
+    fetch('/login', { method: 'POST', body: formData })
+    .then(response => response.json())
+    .then(user => {
+      if (!user.id) throw new Error('Login failure. Please try again!');
+      dispatch(showLoginNotification('You have logged in!'));
     })
+    .catch(error => showLoginNotification(error))
   ));
+}
+
+// proceed to the next action after user logged in
+export function doNextAfterLoggedIn() {
+  return ready(...);
 }
 ```
 
@@ -126,14 +134,15 @@ class User extends Component {
   ...
 
   // say, invoked through `onSubmit` via user login form
+  // and proceed to next once logged in successfully
   handleSubmit(evt) {
     evt.preventDefault();
-    const { userLogin, showLoginMessage } = this.props.actions;
+    const { userLogin, doNextAfterLoggedIn } = this.props.actions;
     const formData = ...;
 
     userLogin(formData)
-    .then(response => showLoginMessage(response))
-    .catch(error => showLoginMessage(error));
+    .then(() => doNextAfterLoggedIn())
+    .catch(error => /* error handling */);
   }
 
   ...
