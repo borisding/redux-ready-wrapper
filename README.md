@@ -4,7 +4,7 @@
 
 - A middleware of [Redux](http://redux.js.org/docs/introduction/) library that handles asynchronous action flow.
 - If you are familiar with [`redux-thunk`](https://github.com/gaearon/redux-thunk), you probably already know how to use `redux-ready-wrapper`, as alternative.
-- The differences are, `redux-ready-wrapper` will dispatch an extra action with `READY_ACTION` type and `options` object *before* dispatching next targeted action. Also, it returns a `Promise` object from the `ready` function for chaining.
+- The differences are, `redux-ready-wrapper` will dispatch an extra action with `READY_ACTION` type and `options` *before* dispatching next targeted action. Also, it returns a `Promise` object from the `ready` function for chaining.
 - By having ready action and options provided, this allows us to control application's state based on the "ready" mode, before subsequent action is dispatched.
 
 ## Installation & Usage
@@ -39,38 +39,48 @@ export default createStore(
 
 ```js
 import { ready } from 'redux-ready-wrapper'; // import `ready`
+import { SOMETHING, SOMETHING_NEW } from './constants';
 
-const type = 'SOMETHING';
-
-// dispatch action
+// return `ready` function instead
+// so that we can implement promise chaining
 export function doSomething() {
   return ready(dispatch => dispatch({
-    type,
-    payload: {}
+    type: SOMETHING,
+    payload: {
+      key1: 'value1',
+      key2: 'value2'
+    }
   }));
 }
 
-// do something else with dispatched action or,
+// extend received action (the source) and return it as new action
+export function extendSomething(action = {}) {
+  const payload = { ...action.payload, key2: 'new value 2', key3: 'value 3' };
+  const newAction = { ...action, type: SOMETHING_NEW, payload };
+
+  return newAction;
+}
+
+// do something else with newly extended action or,
 // throw error if it is invalid.
-
-// ps: you may also change the returned action
-// based on your need to be dispatched for the next
-
 export function doSomethingElse(action = {}) {
-  if (action.type !== type) {
-    throw new Error('Invalid dispatched action received!');
+  if (action.type !== SOMETHING_NEW) {
+    throw new Error('Invalid new action received!');
   }
 
-  console.log(`Yay! action received:  ${JSON.stringify(action)}`);
+  console.log(`Yay! new action received:  ${JSON.stringify(action)}`);
+
+  return action;
 }
 
 
-// assumed `store` object is available,
-// we can dispatch `doSomething` and
-// proceed to the next via promise
-store.dispatch(doSomething())
-.then(action => doSomethingElse(action)) // show console log's message when invoked
-.catch(error => alert(`Oops! ${error}`)); // alert thrown error message if failed
+// assumed `store` object is available:
+const { dispatch } = store;
+
+dispatch(doSomething())
+.then(dispatched => extendSomething(dispatched)) // extend dispatched action from `doSomething`
+.then(extended => dispatch(doSomethingElse(extended))) // passing extended action to `doSomethingElse` and dispatch
+.catch(error => alert(`Oops! ${error}`)); // alert thrown error message if invalid action
 ```
 - Provide `options` as second argument to `ready` function:
 
@@ -176,12 +186,12 @@ export default connect(
 
 - i. `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
 
-- ii. `options` (optional) - A custom object literal to be passed as second argument and will come together with dispatched ready action, in this form:
+- ii. `options` (optional, default: {}) - A user defined options to be passed as second argument and will come together with dispatched ready action, in this form:
 
 ```js
 {
   type: 'READY_ACTION',
-  options: { /* your options values */ }
+  options: /* your options values */
 }
 ```
 
