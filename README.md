@@ -82,7 +82,7 @@ dispatch(doSomething())
 .then(extended => dispatch(doSomethingElse(extended))) // passing extended action to `doSomethingElse` and dispatch
 .catch(error => alert(`Oops! ${error}`)); // alert thrown error message if invalid action
 ```
-- Provide `options` as second argument to `ready` function:
+- Provide `options` as second argument to `ready` function and deal with reducers, eg:
 
 ```js
 // dispatch action from action creator with options provided
@@ -106,6 +106,27 @@ export function something(state = {}, action) {
 
   return state;
 }
+
+// or, we may want to add a `isFetching` reducer
+// based on the ready action and options
+export function isFetching(state = false, action) {
+  state = action.type === 'READY_ACTION';
+
+  // if ready action, and `isFetching` option is defined
+  // then final state change is based on the defined `isFetching`
+  if (state && typeof action.options.isFetching !== 'undefined') {
+    state = action.options.isFetching === true;
+  }
+
+  return state;
+}
+
+// then in root reducer
+const rootReducer = combineReducers({
+    ...
+    isFetching
+    ...
+});
 ```
 - Example 2 (React-Redux):
 
@@ -131,7 +152,7 @@ export function userLogin(formData) {
     .then(response => response.json())
     .then(user => {
       if (!user.id) throw new Error('Login failure. Please try again!');
-      dispatch(showLoginNotification('You have logged in!'));
+      return dispatch(showLoginNotification('You have logged in!'));
     })
     .catch(error => dispatch(showLoginNotification(error)))
   ));
@@ -139,7 +160,10 @@ export function userLogin(formData) {
 
 // proceed to the next action after user logged in
 export function doNextAfterLoggedIn() {
-  return ready(...);
+  return ready((dispatch, getState) => {
+    const current = getState();
+    ...
+  });
 }
 ```
 
@@ -163,6 +187,7 @@ class User extends Component {
     const { userLogin, doNextAfterLoggedIn } = this.props.actions;
     const formData = ...;
 
+    // note that promise here is from `fetch`
     userLogin(formData)
     .then(() => doNextAfterLoggedIn());
   }
