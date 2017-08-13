@@ -4,10 +4,29 @@
 
 - A middleware of [Redux](http://redux.js.org/docs/introduction/) library that handles asynchronous action flow.
 - If you are familiar with [`redux-thunk`](https://github.com/gaearon/redux-thunk), you probably already know how to use `redux-ready-wrapper`, as alternative.
-- The differences are, `redux-ready-wrapper` will dispatch an extra action with `READY_ACTION` type and `options` *before* dispatching next targeted action. Also, it returns a `Promise` object from the `ready` function for chaining.
-- By having ready action and options provided, this allows us to control application's state based on the "ready" mode, before subsequent action is dispatched.
 
-## Installation & Usage
+## API
+a) `ready` - function which accepts two arguments and returns promise object:
+
+- i. `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
+
+- ii. `options` (optional, default: {}) - A user defined options to be passed as second argument and assigned to ready action (the object), in this form:
+
+```js
+{
+  type: 'READY_ACTION',
+  options: /* your options values */
+}
+```
+> Once `ready` is invoked, it will dispatch additional ready action BEFORE dispatching the next targeted action. This could be useful if you plan to have a generic reducer for some controls with provided options during "ready" phase.
+
+b) `wrap` - function which is similar to `ready`, except it only accepts one callback argument _without_ dispatching ready action:
+
+- `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
+
+> Using `wrap` instead of `ready` if you just need asynchronous handling without having ready action to be dispatched.
+
+## Installation
 - To install package:
 
 ```sh
@@ -19,7 +38,7 @@ npm install redux-ready-wrapper --save
 ```js
 import { createStore, applyMiddleware } from 'redux';
 import { createLogger } from 'redux-logger';
-import readyWrapper from 'redux-ready-wrapper'; // import this
+import readyWrapper from 'redux-ready-wrapper'; // <--- import this
 import rootReducer from './reducer';
 
 // add middleware by calling it!
@@ -35,16 +54,18 @@ export default createStore(
 );
 ```
 
+## Usage
+
 - Example 1:
 
 ```js
-import { ready } from 'redux-ready-wrapper'; // import `ready`
+import { wrap } from 'redux-ready-wrapper'; // <--- import `wrap` and/or `ready`
 import { SOMETHING, SOMETHING_NEW } from './constants';
 
-// return `ready` function instead
+// return `wrap` function instead
 // so that we can implement promise chaining
 export function doSomething() {
-  return ready(dispatch => dispatch({
+  return wrap(dispatch => dispatch({
     type: SOMETHING,
     payload: {
       key1: 'value1',
@@ -82,6 +103,7 @@ dispatch(doSomething())
 .then(extended => dispatch(doSomethingElse(extended))) // passing extended action to `doSomethingElse` and dispatch
 .catch(error => alert(`Oops! ${error}`)); // alert thrown error message if invalid action
 ```
+
 - Provide `options` as second argument to `ready` function and deal with reducers, eg:
 
 ```js
@@ -106,27 +128,6 @@ export function something(state = {}, action) {
 
   return state;
 }
-
-// or, we may want to add a `isFetching` reducer
-// based on the ready action and options
-export function isFetching(state = false, action) {
-  state = action.type === 'READY_ACTION';
-
-  // if ready action, and `isFetching` option is defined
-  // then final state change is based on the defined `isFetching`
-  if (state && typeof action.options.isFetching !== 'undefined') {
-    state = action.options.isFetching === true;
-  }
-
-  return state;
-}
-
-// then in root reducer
-const rootReducer = combineReducers({
-    ...
-    isFetching
-    ...
-});
 ```
 - Example 2 (React-Redux):
 
@@ -204,20 +205,6 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(User);
-```
-
-## API
-- `ready` function from `redux-ready-wrapper` that accepts two arguments:
-
-- i. `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
-
-- ii. `options` (optional, default: {}) - A user defined options to be passed as second argument and will come together with dispatched ready action, in this form:
-
-```js
-{
-  type: 'READY_ACTION',
-  options: /* your options values */
-}
 ```
 
 ## License
