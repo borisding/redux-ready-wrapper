@@ -10,7 +10,7 @@ const types = {
   ADD_TODO: 'ADD_TODO',
   TODOS_SUCCESS: 'TODOS_SUCCESS',
   TODOS_FAILURE: 'TODOS_FAILURE',
-  READY_ACTION: 'READY_ACTION',
+  READY_ACTION: 'READY_ACTION'
 };
 
 const todoAction = {
@@ -18,8 +18,8 @@ const todoAction = {
   payload: {
     id: 1,
     todo: 'test todo',
-    done: false,
-  },
+    done: false
+  }
 };
 
 const todoActionCreatorWithoutReadyWrapper = () => todoAction;
@@ -115,7 +115,7 @@ test('getState after dispatching todo action via `ready` function', (done) => {
       ready((dispatch, getState) => {
         expect(getState()).toBe(store.getState());
         done();
-      }),
+      })
     );
   });
 });
@@ -126,7 +126,7 @@ test('getState after dispatching todo action via `wrap` function', (done) => {
       wrap((dispatch, getState) => {
         expect(getState()).toBe(store.getState());
         done();
-      }),
+      })
     );
   });
 });
