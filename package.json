@@ -1,6 +1,6 @@
 {
   "name": "redux-ready-wrapper",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "description": "Ready wrapper middleware for Redux library",
   "main": "dist/index.js",
   "scripts": {
