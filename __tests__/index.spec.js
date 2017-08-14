@@ -88,6 +88,11 @@ test('if add todo action creator returns promise with invoked `ready`', () => {
   expect(invoked instanceof Promise).toBeTruthy();
 });
 
+test('if add todo action creator returns promise with invoked `wrap`', () => {
+  const invoked = store.dispatch(todoActionCreatorWithReadyWrapper(false));
+  expect(invoked instanceof Promise).toBeTruthy();
+});
+
 test('if add todo action is dispatched via `dispatch` within ready wrapper and returned', (done) => {
   store.dispatch(todoActionCreatorWithReadyWrapper()).then((addTodoAction) => {
     expect(addTodoAction.type).toBe(types.ADD_TODO);
