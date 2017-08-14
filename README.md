@@ -1,16 +1,17 @@
 ## What is redux-ready-wrapper?
 [![npm version](https://img.shields.io/npm/v/redux-ready-wrapper.svg?style=flat)](https://www.npmjs.com/package/redux-ready-wrapper)
-[![npm downloads](https://img.shields.io/npm/dm/redux-ready-wrapper.svg?style=flat)](https://www.npmjs.com/package/redux-ready-wrapper)
+[![Build Status](https://travis-ci.org/borisding/redux-ready-wrapper.svg?branch=master)](https://travis-ci.org/borisding/redux-ready-wrapper)
 
 - A middleware of [Redux](http://redux.js.org/docs/introduction/) library that handles asynchronous action flow.
 - If you are familiar with [`redux-thunk`](https://github.com/gaearon/redux-thunk), you probably already know how to use `redux-ready-wrapper`, as alternative.
+- This middleware allows us to return a higher-order function (`ready` / `wrap`) of "thunk" in action creator instead of an action, by accepting a callback function as argument.
 
 ## API
-a) `ready` - function which accepts two arguments and returns promise object:
+a) `ready` - function which accepts two arguments and returns "thunk" function that eventually returns a Promise:
 
-- i. `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
+- `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
 
-- ii. `options` (optional, default: {}) - A user defined options to be passed as second argument and assigned to ready action (the object), in this form:
+- `options` (optional, default: {}) - A user defined options to be passed as second argument and assigned to ready action (the object), in this form:
 
 ```js
 {
@@ -18,11 +19,12 @@ a) `ready` - function which accepts two arguments and returns promise object:
   options: /* your options values */
 }
 ```
-> Once `ready` is invoked, it will dispatch additional ready action BEFORE dispatching the next targeted action. This could be useful if you plan to have a generic reducer for some controls with provided options during "ready" phase.
+
+> Once `ready` is invoked, it will dispatch additional ready action BEFORE dispatching the next targeted action in callback. It could be useful if you plan to have a generic reducer for some controls with provided options during the "ready" phase.
 
 b) `wrap` - function which is similar to `ready`, except it only accepts one callback argument _without_ dispatching ready action:
 
-- `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
+  - `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
 
 > Using `wrap` instead of `ready` if you just need asynchronous handling without having ready action to be dispatched.
 
@@ -206,6 +208,8 @@ export default connect(
   mapDispatchToProps
 )(User);
 ```
+
+> Note: You may not need to return the wrapper in all action creators. It should only be used based on the context.
 
 ## License
 MIT
