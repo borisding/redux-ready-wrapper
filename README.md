@@ -1,5 +1,7 @@
 ## What is redux-ready-wrapper?
-[![npm version](https://img.shields.io/npm/v/redux-ready-wrapper.svg?style=flat)](https://www.npmjs.com/package/redux-ready-wrapper)
+[![npm version](https://img.shields.io/npm/v/redux-ready-wrapper.svg?style=flat-square)](https://www.npmjs.com/package/redux-ready-wrapper)
+[![build status](https://img.shields.io/travis/borisding/redux-ready-wrapper/master.svg?style=flat-square)](https://travis-ci.org/borisding/redux-ready-wrapper)
+[![npm downloads](https://img.shields.io/npm/dm/redux-ready-wrapper.svg?style=flat-square)](https://www.npmjs.com/package/redux-ready-wrapper)
 
 - A middleware of [Redux](http://redux.js.org/docs/introduction/) library that handles asynchronous action flow.
 - If you are familiar with [`redux-thunk`](https://github.com/gaearon/redux-thunk), you probably already know how to use `redux-ready-wrapper`, as alternative.
