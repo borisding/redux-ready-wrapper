@@ -212,5 +212,23 @@ export default connect(
 
 > Note: You may not need to return the wrapper in all action creators. It should only be used based on the context.
 
+- Returning function from action creator without using `ready` / `wrap`:
+
+```js
+export function actionCreator() {
+  // return a function in action creator with received `store` object
+  return (store) => {
+    // do something with `store.dispatch()`
+    // or with 'store.getState()'
+  };
+
+  // or, return function by using object destructuring approach
+  return ({ dispatch, getState }) => {
+    // do something with `dispatch()`
+    // or with 'getState()'
+  };
+}
+```
+
 ## License
 MIT
