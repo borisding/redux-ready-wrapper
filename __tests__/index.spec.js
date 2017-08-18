@@ -15,11 +15,7 @@ const types = {
 
 const todoAction = {
   type: types.ADD_TODO,
-  payload: {
-    id: 1,
-    todo: 'test todo',
-    done: false
-  }
+  payload: {}
 };
 
 const todoActionCreatorWithoutReadyWrapper = () => todoAction;
@@ -37,17 +33,19 @@ const invalidCallbackForReadyWrapper = (isReady = true) => {
 const todoActionCreatorWithOptionsForReadyWrapper = () =>
   ready(dispatch => dispatch(todoAction), { showLoder: true });
 
-const fetchTodos = (isReady = true) => {
-  const { TODOS_SUCCESS, TODOS_FAILURE } = types;
-  const fetcher = dispatch =>
-    fetch('http://example.com/todos')
-      .then(response => response.json())
-      .then(json => dispatch({ type: TODOS_SUCCESS, todos: json.payload.todos }))
-      .catch(errors => dispatch({ type: TODOS_FAILURE, errors }));
+const todoRequest = dispatch =>
+  fetch('http://example.com/todos')
+    .then(response => response.json())
+    .then(json => dispatch({ type: types.TODOS_SUCCESS, todos: json.payload.todos }))
+    .catch(errors => dispatch({ type: types.TODOS_FAILURE, errors }));
 
-  if (isReady) return ready(dispatch => fetcher(dispatch));
-  return wrap(dispatch => fetcher(dispatch));
+const fetchTodos = (isReady = true) => {
+  if (isReady) return ready(dispatch => todoRequest(dispatch));
+  return wrap(dispatch => todoRequest(dispatch));
 };
+
+const httpMock = todo =>
+  nock('http://example.com/').get('/todos').reply(200, { payload: { todos: [todo] } });
 
 let store;
 beforeEach(() => {
@@ -93,8 +91,15 @@ test('if add todo action creator returns promise with invoked `wrap`', () => {
   expect(invoked instanceof Promise).toBeTruthy();
 });
 
-test('if add todo action is dispatched via `dispatch` within ready wrapper and returned', (done) => {
+test('if add todo action is dispatched via `dispatch` within `ready` function and returned', (done) => {
   store.dispatch(todoActionCreatorWithReadyWrapper()).then((addTodoAction) => {
+    expect(addTodoAction.type).toBe(types.ADD_TODO);
+    done();
+  });
+});
+
+test('if add todo action is dispatched via `dispatch` within `wrap` function and returned', (done) => {
+  store.dispatch(todoActionCreatorWithReadyWrapper(false)).then((addTodoAction) => {
     expect(addTodoAction.type).toBe(types.ADD_TODO);
     done();
   });
@@ -136,9 +141,10 @@ test('getState after dispatching todo action via `wrap` function', (done) => {
   });
 });
 
-test('async via http request with `ready` function', (done) => {
+test('async via `ready` function for http request', (done) => {
   const todo = 'my new todo via ready!';
-  nock('http://example.com/').get('/todos').reply(200, { payload: { todos: [todo] } });
+  httpMock(todo);
+
   store.dispatch(fetchTodos()).then((action) => {
     expect(action.type).toBe(types.TODOS_SUCCESS);
     expect(action.todos[0]).toBe(todo);
@@ -146,10 +152,30 @@ test('async via http request with `ready` function', (done) => {
   });
 });
 
-test('async via http request with `wrap` function', (done) => {
+test('async via `wrap` function for http request', (done) => {
   const todo = 'my new todo via wrap!';
-  nock('http://example.com/').get('/todos').reply(200, { payload: { todos: [todo] } });
+  httpMock(todo);
+
   store.dispatch(fetchTodos(false)).then((action) => {
+    expect(action.type).toBe(types.TODOS_SUCCESS);
+    expect(action.todos[0]).toBe(todo);
+    done();
+  });
+});
+
+test('async via thunk for http request', (done) => {
+  const todo = 'my new todo via thunk!';
+  const initState = { test: '123' };
+
+  const actionCreator = () => ({ dispatch, getState }) => {
+    expect(getState().test).toBe(initState.test);
+    return todoRequest(dispatch);
+  };
+
+  httpMock(todo);
+  store = mockStore(initState);
+
+  store.dispatch(actionCreator()).then((action) => {
     expect(action.type).toBe(types.TODOS_SUCCESS);
     expect(action.todos[0]).toBe(todo);
     done();
