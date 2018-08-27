@@ -1,4 +1,7 @@
+> ## NOTE: This repo is deprecated and archived. Please use [redux-thunk-init](https://github.com/borisding/redux-thunk-init) instead.
+
 ## What is redux-ready-wrapper?
+
 [![npm version](https://img.shields.io/npm/v/redux-ready-wrapper.svg?style=flat-square)](https://www.npmjs.com/package/redux-ready-wrapper)
 [![build status](https://img.shields.io/travis/borisding/redux-ready-wrapper/master.svg?style=flat-square)](https://travis-ci.org/borisding/redux-ready-wrapper)
 [![npm downloads](https://img.shields.io/npm/dm/redux-ready-wrapper.svg?style=flat-square)](https://www.npmjs.com/package/redux-ready-wrapper)
@@ -8,6 +11,7 @@
 - This middleware allows us to return a higher-order function (`ready` / `wrap`) of "thunk" in action creator instead of an action, by accepting a callback function as argument.
 
 ## API
+
 a) `ready` - function which accepts two arguments and returns "thunk" function that eventually returns a Promise:
 
 - `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
@@ -25,11 +29,12 @@ a) `ready` - function which accepts two arguments and returns "thunk" function t
 
 b) `wrap` - function which is similar to `ready`, except it only accepts one callback argument _without_ dispatching ready action:
 
-  - `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
+- `callback` (mandatory) - A callback function that will receive `dispatch` and `getState` methods from redux's `store` object.
 
 > Using `wrap` instead of `ready` if you just need asynchronous handling without having ready action to be dispatched.
 
 ## Installation
+
 - To install package:
 
 ```sh
@@ -39,22 +44,19 @@ npm install redux-ready-wrapper --save
 - import and apply middleware:
 
 ```js
-import { createStore, applyMiddleware } from 'redux';
-import { createLogger } from 'redux-logger';
-import readyWrapper from 'redux-ready-wrapper'; // <--- import this
-import rootReducer from './reducer';
+import { createStore, applyMiddleware } from "redux";
+import { createLogger } from "redux-logger";
+import readyWrapper from "redux-ready-wrapper"; // <--- import this
+import rootReducer from "./reducer";
 
 // add middleware by calling it!
 const middlewares = [readyWrapper()];
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
   middlewares.push(createLogger());
 }
 
-export default createStore(
-  rootReducer,
-  applyMiddleware(...middlewares)
-);
+export default createStore(rootReducer, applyMiddleware(...middlewares));
 ```
 
 ## Usage
@@ -62,24 +64,26 @@ export default createStore(
 - Example 1:
 
 ```js
-import { wrap } from 'redux-ready-wrapper'; // <--- import `wrap` and/or `ready`
-import { SOMETHING, SOMETHING_NEW } from './constants';
+import { wrap } from "redux-ready-wrapper"; // <--- import `wrap` and/or `ready`
+import { SOMETHING, SOMETHING_NEW } from "./constants";
 
 // return `wrap` function instead
 // so that we can implement promise chaining
 export function doSomething() {
-  return wrap(dispatch => dispatch({
-    type: SOMETHING,
-    payload: {
-      key1: 'value1',
-      key2: 'value2'
-    }
-  }));
+  return wrap(dispatch =>
+    dispatch({
+      type: SOMETHING,
+      payload: {
+        key1: "value1",
+        key2: "value2"
+      }
+    })
+  );
 }
 
 // extend received action (the source) and return it as new action
 export function extendSomething(action = {}) {
-  const payload = { ...action.payload, key2: 'new value 2', key3: 'value 3' };
+  const payload = { ...action.payload, key2: "new value 2", key3: "value 3" };
   const newAction = { ...action, type: SOMETHING_NEW, payload };
 
   return newAction;
@@ -89,7 +93,7 @@ export function extendSomething(action = {}) {
 // throw error if it is invalid.
 export function doSomethingElse(action = {}) {
   if (action.type !== SOMETHING_NEW) {
-    throw new Error('Invalid new action received!');
+    throw new Error("Invalid new action received!");
   }
 
   console.log(`Yay! new action received:  ${JSON.stringify(action)}`);
@@ -97,14 +101,13 @@ export function doSomethingElse(action = {}) {
   return action;
 }
 
-
 // assumed `store` object is available:
 const { dispatch } = store;
 
 dispatch(doSomething())
-.then(dispatched => extendSomething(dispatched)) // extend dispatched action from `doSomething`
-.then(extended => dispatch(doSomethingElse(extended))) // passing extended action to `doSomethingElse` and dispatch
-.catch(error => alert(`Oops! ${error}`)); // alert thrown error message if invalid action
+  .then(dispatched => extendSomething(dispatched)) // extend dispatched action from `doSomething`
+  .then(extended => dispatch(doSomethingElse(extended))) // passing extended action to `doSomethingElse` and dispatch
+  .catch(error => alert(`Oops! ${error}`)); // alert thrown error message if invalid action
 ```
 
 - Provide `options` as second argument to `ready` function and deal with reducers, eg:
@@ -113,8 +116,8 @@ dispatch(doSomething())
 // dispatch action from action creator with options provided
 export function doSomething() {
   const options = {
-    key1: 'value1',
-    key2: 'value2'
+    key1: "value1",
+    key2: "value2"
   };
 
   return ready(dispatch => dispatch(actionCreator()), options);
@@ -122,16 +125,16 @@ export function doSomething() {
 
 // add a reducer say, `something` pure function
 export function something(state = {}, action) {
-  if (action.type === 'READY_ACTION') {
+  if (action.type === "READY_ACTION") {
     // manage state change and `action.options`
-
-  } else if (action.type === 'SOMETHING') {
+  } else if (action.type === "SOMETHING") {
     // manage state change for `SOMETHING`
   }
 
   return state;
 }
 ```
+
 - Example 2 (React-Redux):
 
 ```js
@@ -217,7 +220,7 @@ export default connect(
 ```js
 export function actionCreator() {
   // return a function in action creator with received `store` object
-  return (store) => {
+  return store => {
     // do something with `store.dispatch()`
     // or with 'store.getState()'
   };
@@ -231,4 +234,5 @@ export function actionCreator() {
 ```
 
 ## License
+
 MIT
